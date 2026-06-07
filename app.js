@@ -98,7 +98,7 @@
 
       const docH = document.documentElement.scrollHeight - window.innerHeight;
       const pct = docH > 0 ? (y / docH) * 100 : 0;
-      progress.style.width = pct + '%';
+      progress.style.transform = `scaleX(${pct / 100})`;
 
       const cur = y + window.innerHeight * 0.3;
       let activeIdx = -1;
@@ -181,26 +181,305 @@
   const strip = document.getElementById('prjStrip');
   const prjPrev = document.getElementById('prj-prev');
   const prjNext = document.getElementById('prj-next');
+  const projectNav = document.querySelector('.projects__head__nav');
+  const work = document.getElementById('work');
+  const projectOriginalCards = Array.from(strip.querySelectorAll('.project'));
+
+  let projectCloneSets = 0;
+  const maxProjectCloneSets = 2;
+  const appendProjectCloneSet = () => {
+    projectOriginalCards.forEach((card) => {
+      const clone = card.cloneNode(true);
+      clone.dataset.projectClone = 'true';
+      clone.setAttribute('aria-hidden', 'true');
+      clone.classList.add('in');
+      clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+      clone.querySelectorAll('a, button, input, textarea, select').forEach(el => {
+        el.tabIndex = -1;
+      });
+      strip.appendChild(clone);
+    });
+    projectCloneSets += 1;
+  };
+
+  for (let i = 0; i < maxProjectCloneSets; i += 1) appendProjectCloneSet();
+
+  let isProjectStripHovering = false;
+  let isProjectNavHovering = false;
+  let hasProjectFocus = false;
+  let isProjectDragging = false;
+
+  const getProjectGap = () => {
+    const styles = window.getComputedStyle(strip);
+    const columnGap = parseFloat(styles.columnGap);
+    const gap = Number.isNaN(columnGap) ? parseFloat(styles.gap) : columnGap;
+    return Number.isNaN(gap) ? 0 : gap;
+  };
+
+  const getProjectStep = () => {
+    const card = projectOriginalCards[0] || strip.querySelector('.project');
+    return card ? card.getBoundingClientRect().width + getProjectGap() : 0;
+  };
+
+  const getProjectLoopWidth = () => {
+    const firstCard = projectOriginalCards[0];
+    const firstClone = strip.querySelector('[data-project-clone="true"]');
+    if (!firstCard || !firstClone) return 0;
+    return firstClone.offsetLeft - firstCard.offsetLeft;
+  };
+
+  const ensureProjectCloneBuffer = () => {
+    if (T.projectsLayout !== 'horizontal' || isProjectDragging) return;
+    const loopWidth = getProjectLoopWidth();
+    if (loopWidth <= 0) return;
+    if (strip.scrollLeft >= loopWidth * maxProjectCloneSets) strip.scrollLeft -= loopWidth;
+  };
+
+  const prepareProjectLoop = (dir) => {
+    if (T.projectsLayout !== 'horizontal') return;
+    const loopWidth = getProjectLoopWidth();
+    if (loopWidth <= 0) return;
+    ensureProjectCloneBuffer();
+    if (dir < 0 && strip.scrollLeft <= 2) strip.scrollLeft += loopWidth;
+  };
 
   const scrollByCard = (dir) => {
-    const card = strip.querySelector('.project');
-    if (!card) return;
-    const gap = 28;
-    const dist = card.offsetWidth + gap;
-    strip.scrollBy({ left: dir * dist, behavior: 'smooth' });
+    const dist = getProjectStep();
+    if (!dist) return;
+    prepareProjectLoop(dir);
+    const rawIndex = strip.scrollLeft / dist;
+    const currentIndex = dir > 0
+      ? Math.floor(rawIndex + 0.04)
+      : Math.ceil(rawIndex - 0.04);
+    const targetLeft = Math.max(0, (currentIndex + dir) * dist);
+    strip.scrollTo({ left: targetLeft, behavior: 'smooth' });
+    window.setTimeout(() => {
+      ensureProjectCloneBuffer();
+      requestProjectMediaPlayback();
+    }, 700);
   };
-  prjPrev.addEventListener('click', () => scrollByCard(-1));
-  prjNext.addEventListener('click', () => scrollByCard(1));
+
+  const projectAutoScrollMs = 3600;
+  const isProjectSectionVisible = () => {
+    if (!work) return false;
+    const rect = work.getBoundingClientRect();
+    return (
+      T.projectsLayout === 'horizontal' &&
+      rect.top < window.innerHeight * 0.74 &&
+      rect.bottom > window.innerHeight * 0.26
+    );
+  };
+
+  const getAnimatedProjectImages = () => Array.from(strip.querySelectorAll('.project__cover__img[data-animated-src]'));
+
+  const setProjectImagePlayback = (img, shouldAnimate) => {
+    if (!img.dataset.posterSrc) img.dataset.posterSrc = img.getAttribute('src');
+    const nextSrc = shouldAnimate ? img.dataset.animatedSrc : img.dataset.posterSrc;
+    if (img.getAttribute('src') !== nextSrc) img.setAttribute('src', nextSrc);
+  };
+
+  const updateProjectMediaPlayback = () => {
+    const animatedImages = getAnimatedProjectImages();
+    if (!animatedImages.length) return;
+
+    if (!isProjectSectionVisible()) {
+      animatedImages.forEach(img => setProjectImagePlayback(img, false));
+      return;
+    }
+
+    const stripRect = strip.getBoundingClientRect();
+    const stripCenter = stripRect.left + stripRect.width / 2;
+    const hoveredProject = strip.querySelector('.project:hover');
+    let activeProject = hoveredProject?.querySelector('.project__cover__img[data-animated-src]')
+      ? hoveredProject
+      : null;
+
+    if (!activeProject) {
+      let closestDistance = Infinity;
+      animatedImages.forEach((img) => {
+        const project = img.closest('.project');
+        const rect = project.getBoundingClientRect();
+        const isVisible = (
+          rect.right > stripRect.left &&
+          rect.left < stripRect.right &&
+          rect.bottom > 0 &&
+          rect.top < window.innerHeight
+        );
+        if (!isVisible) return;
+
+        const distance = Math.abs((rect.left + rect.right) / 2 - stripCenter);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          activeProject = project;
+        }
+      });
+    }
+
+    animatedImages.forEach((img) => {
+      setProjectImagePlayback(img, img.closest('.project') === activeProject);
+    });
+  };
+
+  let projectMediaTicking = false;
+  const requestProjectMediaPlayback = () => {
+    if (projectMediaTicking) return;
+    projectMediaTicking = true;
+    requestAnimationFrame(() => {
+      updateProjectMediaPlayback();
+      projectMediaTicking = false;
+    });
+  };
+
+  const isProjectAutoPaused = () => (
+    isProjectStripHovering ||
+    isProjectNavHovering ||
+    hasProjectFocus ||
+    isProjectDragging ||
+    document.hidden
+  );
+  const canAutoScrollProjects = () => (
+    T.projectsLayout === 'horizontal' &&
+    projectOriginalCards.length > 1 &&
+    isProjectSectionVisible() &&
+    strip.scrollWidth > strip.clientWidth + 4
+  );
+  const lockProjectScroll = () => {
+    strip.scrollTo({ left: strip.scrollLeft, behavior: 'auto' });
+  };
+
+  const autoScrollProjects = () => {
+    if (!canAutoScrollProjects() || isProjectAutoPaused()) return;
+    scrollByCard(1);
+  };
+
+  let projectAutoTimer = null;
+  const pauseProjectAutoScroll = () => {
+    if (projectAutoTimer) window.clearTimeout(projectAutoTimer);
+    projectAutoTimer = null;
+  };
+  const queueProjectAutoScroll = (delay = projectAutoScrollMs) => {
+    pauseProjectAutoScroll();
+    if (isProjectAutoPaused() || !canAutoScrollProjects()) return;
+    projectAutoTimer = window.setTimeout(() => {
+      autoScrollProjects();
+      queueProjectAutoScroll();
+    }, delay);
+  };
+  const manualProjectScroll = (dir) => {
+    scrollByCard(dir);
+    queueProjectAutoScroll();
+  };
+
+  prjPrev.addEventListener('click', (e) => {
+    e.currentTarget.blur();
+    manualProjectScroll(-1);
+  });
+  prjNext.addEventListener('click', (e) => {
+    e.currentTarget.blur();
+    manualProjectScroll(1);
+  });
+  queueProjectAutoScroll();
+
+  strip.addEventListener('pointerenter', () => {
+    isProjectStripHovering = true;
+    lockProjectScroll();
+    pauseProjectAutoScroll();
+    requestProjectMediaPlayback();
+  });
+
+  strip.addEventListener('pointerleave', () => {
+    isProjectStripHovering = false;
+    queueProjectAutoScroll();
+    requestProjectMediaPlayback();
+  });
+
+  strip.addEventListener('pointermove', requestProjectMediaPlayback, { passive: true });
+
+  strip.addEventListener('focusin', () => {
+    hasProjectFocus = true;
+    lockProjectScroll();
+    pauseProjectAutoScroll();
+  });
+
+  strip.addEventListener('focusout', (e) => {
+    if (!strip.contains(e.relatedTarget) && !projectNav?.contains(e.relatedTarget)) {
+      hasProjectFocus = false;
+      queueProjectAutoScroll();
+    }
+  });
+
+  projectNav?.addEventListener('pointerenter', () => {
+    isProjectNavHovering = true;
+    lockProjectScroll();
+    pauseProjectAutoScroll();
+  });
+
+  projectNav?.addEventListener('pointerleave', () => {
+    isProjectNavHovering = false;
+    queueProjectAutoScroll();
+  });
+
+  let projectBufferTimer = null;
+  strip.addEventListener('scroll', () => {
+    window.clearTimeout(projectBufferTimer);
+    requestProjectMediaPlayback();
+    projectBufferTimer = window.setTimeout(() => {
+      ensureProjectCloneBuffer();
+      requestProjectMediaPlayback();
+    }, 180);
+  }, { passive: true });
+
+  const updateProjectNavVisibility = () => {
+    if (!projectNav || !work) return;
+    const stripRect = strip.getBoundingClientRect();
+    const navY = Math.min(
+      window.innerHeight - 82,
+      Math.max(82, stripRect.top + stripRect.height / 2)
+    );
+    projectNav.style.setProperty('--projects-nav-y', `${navY}px`);
+    projectNav.classList.toggle('is-visible', isProjectSectionVisible());
+  };
+
+  let projectNavTicking = false;
+  const requestProjectNavVisibility = () => {
+    if (projectNavTicking) return;
+    projectNavTicking = true;
+    requestAnimationFrame(() => {
+      updateProjectNavVisibility();
+      projectNavTicking = false;
+    });
+  };
+
+  window.addEventListener('scroll', requestProjectNavVisibility, { passive: true });
+  window.addEventListener('resize', requestProjectNavVisibility);
+  let projectPageScrollTimer = null;
+  window.addEventListener('scroll', () => {
+    if (!isProjectSectionVisible()) {
+      pauseProjectAutoScroll();
+      requestProjectMediaPlayback();
+      return;
+    }
+    pauseProjectAutoScroll();
+    requestProjectMediaPlayback();
+    window.clearTimeout(projectPageScrollTimer);
+    projectPageScrollTimer = window.setTimeout(() => queueProjectAutoScroll(), 1000);
+  }, { passive: true });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseProjectAutoScroll();
+    else queueProjectAutoScroll();
+    requestProjectMediaPlayback();
+  });
+  updateProjectNavVisibility();
+  requestProjectMediaPlayback();
 
   /* keyboard nav for projects when section is in view */
   document.addEventListener('keydown', (e) => {
     if (e.target.matches('input,textarea')) return;
-    const work = document.getElementById('work');
     const rect = work.getBoundingClientRect();
     if (rect.top > window.innerHeight || rect.bottom < 0) return;
     if (T.projectsLayout !== 'horizontal') return;
-    if (e.key === 'ArrowRight') { e.preventDefault(); scrollByCard(1); }
-    if (e.key === 'ArrowLeft')  { e.preventDefault(); scrollByCard(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); manualProjectScroll(1); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); manualProjectScroll(-1); }
   });
 
   /* drag to scroll on the strip */
@@ -209,6 +488,9 @@
     if (T.projectsLayout !== 'horizontal') return;
     if (e.target.closest('a, button')) return;
     isDown = true;
+    isProjectDragging = true;
+    lockProjectScroll();
+    pauseProjectAutoScroll();
     startX = e.pageX - strip.offsetLeft;
     scrollLeft = strip.scrollLeft;
     strip.setPointerCapture(e.pointerId);
@@ -220,7 +502,16 @@
     const x = e.pageX - strip.offsetLeft;
     strip.scrollLeft = scrollLeft - (x - startX) * 1.4;
   });
-  const endDrag = () => { isDown = false; strip.style.cursor = ''; };
+  const endDrag = () => {
+    isDown = false;
+    isProjectDragging = false;
+    strip.style.cursor = '';
+    window.setTimeout(() => {
+      ensureProjectCloneBuffer();
+      requestProjectMediaPlayback();
+    }, 80);
+    queueProjectAutoScroll();
+  };
   strip.addEventListener('pointerup', endDrag);
   strip.addEventListener('pointerleave', endDrag);
   strip.addEventListener('pointercancel', endDrag);
@@ -238,22 +529,54 @@
 
   /* ── custom cursor ────────────────────────────────────────── */
   const cursor = document.getElementById('cursor');
-  let cx = 0, cy = 0, tx = 0, ty = 0;
-  window.addEventListener('pointermove', (e) => { tx = e.clientX; ty = e.clientY; });
+  const canUseCursor = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  let cx = 0, cy = 0, tx = 0, ty = 0, cursorRaf = null, cursorReady = false;
+
+  const stopCursor = () => {
+    if (cursorRaf) cancelAnimationFrame(cursorRaf);
+    cursorRaf = null;
+  };
+
   const followCursor = () => {
     cx += (tx - cx) * 0.22;
     cy += (ty - cy) * 0.22;
     cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
-    requestAnimationFrame(followCursor);
+
+    const dx = Math.abs(tx - cx);
+    const dy = Math.abs(ty - cy);
+    if (dx > 0.1 || dy > 0.1) {
+      cursorRaf = requestAnimationFrame(followCursor);
+      return;
+    }
+
+    cursorRaf = null;
   };
-  followCursor();
-  document.addEventListener('pointerover', (e) => {
-    const t = e.target;
-    const isHover = t.closest('a, button, [data-cursor="hover"]');
-    const isText = t.matches('input, textarea');
-    cursor.classList.toggle('cursor--hover', !!isHover && !isText);
-    cursor.classList.toggle('cursor--text', !!isText);
-  });
+
+  if (cursor && canUseCursor) {
+    window.addEventListener('pointermove', (e) => {
+      if (!body.classList.contains('cursor-on')) return;
+      tx = e.clientX;
+      ty = e.clientY;
+      if (!cursorReady) {
+        cx = tx;
+        cy = ty;
+        cursorReady = true;
+      }
+      if (!cursorRaf) cursorRaf = requestAnimationFrame(followCursor);
+    }, { passive: true });
+
+    document.addEventListener('pointerover', (e) => {
+      const t = e.target;
+      const isHover = t.closest('a, button, [data-cursor="hover"]');
+      const isText = t.matches('input, textarea');
+      cursor.classList.toggle('cursor--hover', !!isHover && !isText);
+      cursor.classList.toggle('cursor--text', !!isText);
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopCursor();
+    });
+  }
 
   /* ── form ─────────────────────────────────────────────────── */
   const form = document.getElementById('contactForm');
@@ -273,15 +596,24 @@
 
   /* ── parallax for vision pillars ──────────────────────────── */
   const visionPillars = document.querySelectorAll('.pillar');
+  let parallaxTicking = false;
+  const updatePillarParallax = () => {
+    if (T.intensity !== 'subtle') {
+      visionPillars.forEach((p, i) => {
+        const r = p.getBoundingClientRect();
+        if (r.top > window.innerHeight || r.bottom < 0) return;
+        const center = (r.top + r.bottom) / 2 - window.innerHeight / 2;
+        const k = T.intensity === 'bold' ? 0.04 : 0.02;
+        p.style.transform = `translateY(${center * k * (i - 1)}px)`;
+      });
+    }
+    parallaxTicking = false;
+  };
+
   window.addEventListener('scroll', () => {
-    if (T.intensity === 'subtle') return;
-    visionPillars.forEach((p, i) => {
-      const r = p.getBoundingClientRect();
-      if (r.top > window.innerHeight || r.bottom < 0) return;
-      const center = (r.top + r.bottom) / 2 - window.innerHeight / 2;
-      const k = T.intensity === 'bold' ? 0.04 : 0.02;
-      p.style.transform = `translateY(${center * k * (i - 1)}px)`;
-    });
+    if (parallaxTicking) return;
+    parallaxTicking = true;
+    requestAnimationFrame(updatePillarParallax);
   }, { passive: true });
 
   /* show fallback toggle after 1.5s if host hasn't activated edit mode */

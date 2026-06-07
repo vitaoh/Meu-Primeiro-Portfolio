@@ -56,7 +56,7 @@
     <div class="hero__avatar">
       <span class="hero__avatar__img"></span>
       <span class="hero__avatar__pulse"></span>
-      <span>Disponível para estágio</span>
+      <span>Aberto a oportunidades</span>
     </div>
 
     <h1 class="hero__title" id="heroTitle">
@@ -69,7 +69,7 @@
       <p class="hero__intro reveal">
         <strong>Victor Rodrigues Herculini</strong> — estudante de ADS no IFSP.
         Construo software pensando em arquitetura, legibilidade e na experiência de quem usa.
-        Java, Kotlin, JavaScript, Android, MySQL.
+        Java, Kotlin, JavaScript, Mobile, MySQL.
       </p>
       <div class="hero__side" data-stagger>
         <div class="hero__side__stat">
@@ -101,7 +101,7 @@
     <span class="marquee__item">Java<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">Kotlin<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">JavaScript<span class="marquee__item__dot"></span></span>
-    <span class="marquee__item">Android<span class="marquee__item__dot"></span></span>
+    <span class="marquee__item">Mobile<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">Python<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">MySQL<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">JSP<span class="marquee__item__dot"></span></span>
@@ -113,7 +113,7 @@
     <span class="marquee__item">Java<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">Kotlin<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">JavaScript<span class="marquee__item__dot"></span></span>
-    <span class="marquee__item">Android<span class="marquee__item__dot"></span></span>
+    <span class="marquee__item">Mobile<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">Python<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">MySQL<span class="marquee__item__dot"></span></span>
     <span class="marquee__item">JSP<span class="marquee__item__dot"></span></span>
@@ -166,8 +166,8 @@
           <div class="about__fact"><span class="about__fact__label">Idade</span><span class="about__fact__value">20 anos</span><span class="about__fact__icon">→</span></div>
           <div class="about__fact"><span class="about__fact__label">Local</span><span class="about__fact__value">São Carlos · SP</span><span class="about__fact__icon">→</span></div>
           <div class="about__fact"><span class="about__fact__label">Curso</span><span class="about__fact__value">ADS · IFSP</span><span class="about__fact__icon">→</span></div>
-          <div class="about__fact"><span class="about__fact__label">Status</span><span class="about__fact__value" style="color: var(--accent);">Buscando estágio ●</span><span class="about__fact__icon">→</span></div>
-          <div class="about__fact"><span class="about__fact__label">Foco</span><span class="about__fact__value">Back-end · Android · Arquitetura</span><span class="about__fact__icon">→</span></div>
+          <div class="about__fact"><span class="about__fact__label">Status</span><span class="about__fact__value" style="color: var(--accent);">Aberto a oportunidades ●</span><span class="about__fact__icon">→</span></div>
+          <div class="about__fact"><span class="about__fact__label">Foco</span><span class="about__fact__value">Back-end · Mobile · Arquitetura</span><span class="about__fact__icon">→</span></div>
         </div>
       </div>
     </div>
@@ -208,33 +208,34 @@
     </div>
     <div class="projects__head">
       <h2 class="section-title reveal">Projetos em <em>destaque</em>.</h2>
-      <div class="projects__head__nav">
-        <button class="projects__nav-btn" id="prj-prev" aria-label="Anterior" data-cursor="hover">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <button class="projects__nav-btn" id="prj-next" aria-label="Próximo" data-cursor="hover">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
     </div>
+  </div>
+
+  <div class="projects__head__nav" aria-label="Navegar projetos">
+    <button class="projects__nav-btn" id="prj-prev" aria-label="Anterior" data-cursor="hover">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="projects__nav-btn" id="prj-next" aria-label="Próximo" data-cursor="hover">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
   </div>
 
   <div class="projects__strip" id="prjStrip">
 
     <article class="project reveal reveal--right">
       <div class="project__cover">
-        <img src="pictures/postly/video.gif" alt="Demonstração do Postly" class="project__cover__img">
+        <img src="pictures/postly/video-poster.png" data-animated-src="pictures/postly/video.gif" alt="Demonstração do Postly" class="project__cover__img" loading="lazy" decoding="async">
         <span class="project__cover__glow"></span>
         <div class="project__cover__mock"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-        <span class="project__cover__label">01 · Android</span>
+        <span class="project__cover__label">01 · Mobile</span>
         <span class="project__cover__seal">Postly</span>
         <span class="project__cover__year">2026</span>
       </div>
       <div class="project__body">
         <span class="project__cat">Rede social mobile</span>
         <h3 class="project__title">Postly</h3>
-        <p class="project__desc">Rede social mobile para publicação de conteúdo, interação entre usuários e construção de comunidades — desenvolvida nativamente para Android.</p>
-        <div class="project__tags"><span class="project__tag">Kotlin</span><span class="project__tag">Android</span><span class="project__tag">Firebase</span><span class="project__tag">XML</span></div>
+        <p class="project__desc">Rede social mobile para publicação de conteúdo, interação entre usuários e construção de comunidades — desenvolvida nativamente para mobile.</p>
+        <div class="project__tags"><span class="project__tag">Kotlin</span><span class="project__tag">Mobile</span><span class="project__tag">Firebase</span><span class="project__tag">XML</span></div>
         <a href="https://github.com/vitaoh/postly-app" target="_blank" rel="noopener" class="project__link" data-cursor="hover">
           Ver no GitHub <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </a>
@@ -243,18 +244,18 @@
 
     <article class="project reveal reveal--right">
       <div class="project__cover">
-        <img src="pictures/guiapocket/demonstracao.gif" alt="Demonstração do Guia Pocket" class="project__cover__img">
+        <img src="pictures/guiapocket/demonstracao-poster.png" data-animated-src="pictures/guiapocket/demonstracao.gif" alt="Demonstração do Guia Pocket" class="project__cover__img" loading="lazy" decoding="async">
         <span class="project__cover__glow"></span>
         <div class="project__cover__mock"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-        <span class="project__cover__label">02 · Android</span>
+        <span class="project__cover__label">02 · Mobile</span>
         <span class="project__cover__seal">Guia<br>Pocket</span>
         <span class="project__cover__year">2025</span>
       </div>
       <div class="project__body">
-        <span class="project__cat">Aplicativo Android</span>
+        <span class="project__cat">Aplicativo mobile</span>
         <h3 class="project__title">Guia Pocket</h3>
-        <p class="project__desc">Aplicativo Android para guias práticos e consultas rápidas, com navegação intuitiva e acesso offline ao conteúdo.</p>
-        <div class="project__tags"><span class="project__tag">Kotlin</span><span class="project__tag">Android</span><span class="project__tag">XML</span></div>
+        <p class="project__desc">Aplicativo mobile para guias práticos e consultas rápidas, com navegação intuitiva e acesso offline ao conteúdo.</p>
+        <div class="project__tags"><span class="project__tag">Kotlin</span><span class="project__tag">Mobile</span><span class="project__tag">XML</span></div>
         <a href="https://github.com/vitaoh/guia-pocket-app" target="_blank" rel="noopener" class="project__link" data-cursor="hover">
           Ver no GitHub <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </a>
@@ -263,7 +264,7 @@
 
     <article class="project reveal reveal--right">
       <div class="project__cover">
-        <img src="pictures/task/tarefas.png" alt="Tela de tarefas do Task Manager" class="project__cover__img">
+        <img src="pictures/task/tarefas.png" alt="Tela de tarefas do Task Manager" class="project__cover__img" loading="lazy" decoding="async">
         <span class="project__cover__glow"></span>
         <div class="project__cover__mock"><span></span><span></span><span></span><span></span><span></span><span></span></div>
         <span class="project__cover__label">03 · Sistema</span>
@@ -283,7 +284,7 @@
 
     <article class="project reveal reveal--right">
       <div class="project__cover">
-        <img src="pictures/rededevs/home.png" alt="Tela inicial da RedeDevs" class="project__cover__img">
+        <img src="pictures/rededevs/home.png" alt="Tela inicial da RedeDevs" class="project__cover__img" loading="lazy" decoding="async">
         <span class="project__cover__glow"></span>
         <div class="project__cover__mock"><span></span><span></span><span></span><span></span><span></span><span></span></div>
         <span class="project__cover__label">04 · Comunidade</span>
@@ -303,7 +304,7 @@
 
     <article class="project reveal reveal--right">
       <div class="project__cover">
-        <img src="pictures/pokemon/batalha.png" alt="Tela de batalha do Pokémon Showdown" class="project__cover__img">
+        <img src="pictures/pokemon/batalha.png" alt="Tela de batalha do Pokémon Showdown" class="project__cover__img" loading="lazy" decoding="async">
         <span class="project__cover__glow"></span>
         <div class="project__cover__mock"><span></span><span></span><span></span><span></span><span></span><span></span></div>
         <span class="project__cover__label">05 · Experimental</span>
